@@ -1,0 +1,664 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="description" content="POS - Bootstrap Admin Template">
+    <meta name="keywords"
+        content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
+    <meta name="author" content="Dreamguys - Bootstrap Admin Template">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Dreams Pos admin template</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.jpg">
+
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="assets/css/animate.css">
+
+    <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
+
+    <link rel="stylesheet" href="assets/css/bootstrap-datetimepicker.min.css">
+
+    <link rel="stylesheet" href="assets/css/dataTables.bootstrap4.min.css">
+
+    <link rel="stylesheet" href="assets/plugins/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <link rel="stylesheet" href="assets/css/customstyle.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="assets/plugins/sweetalert/sweetalert2.all.min.js"></script>
+    <script src="assets/plugins/sweetalert/sweetalerts.min.js"></script> -->
+    <script>
+        const apiUrl = "https://localhost:7245/api/Users";
+
+        function fetchUsers() {
+            fetch(apiUrl)
+                .then((response) => response.json())
+                .then((users) => {
+                    const tbody = document.querySelector("#usersTable tbody");
+                    tbody.innerHTML = "";
+                    users.forEach((user) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+         <td class="productimgname">
+            <a href="javascript:void(0);" class="product-img">
+                 <img src="assets/img/product/product1.jpg" alt="product">
+             </a>
+        </td>
+        <td>${user.username}</td>
+        <td>${user.phone}</td>
+        <td><a href="mailto:${user.email}">${user.email}</a></td>
+        <td>${user.roles}</td>
+        <td>
+            <button type="button" class="me-3 btn btn-added" data-bs-toggle="modal" data-bs-target="#addupdateuser" onclick="openUpdateModal(${user.id})">
+                <img src="assets/img/icons/edit.svg" alt="img">
+            </button>
+            <a class="me-3 confirm-text" data-user-id="${user.id}">
+                <img src="assets/img/icons/delete.svg" alt="img">
+            </a>
+        </td>
+    `;
+                        tbody.appendChild(row);
+                    });
+
+                    // Add event listener for delete buttons
+
+
+
+
+                    // document.querySelectorAll(".confirm-text").forEach((button) => {
+                    //     button.addEventListener("click", function () {
+                    //         const userId = this.getAttribute("data-user-id");
+                    //         const confirmed = confirm("Are you sure you want to delete this user?");
+
+                    //         if (confirmed) {
+                    //             deleteUser(userId);
+
+                    //         }
+                    //     });
+                    // });
+
+
+                    $(".confirm-text").on("click", function () {
+                        const userId = $(this).data("user-id");
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            icon: "warning", // Replace 'type' with 'icon'
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!",
+                            customClass: {
+                                confirmButton: "btn btn-primary",
+                                cancelButton: "btn btn-danger ml-1"
+                            },
+                            buttonsStyling: false,
+                        }).then(function (result) {
+                            if (result.isConfirmed) {
+                                // Perform the delete operation here
+                                deleteUser(userId); // Replace with your delete function
+                                // Swal.fire({
+                                //     icon: "success", // Replace 'type' with 'icon'
+                                //     title: "Deleted!",
+                                //     text: "Your file has been deleted.",
+                                //     customClass: {
+                                //         confirmButton: "btn btn-success"
+                                //     }
+                                // });
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Deleted!",
+                                    text: "Your User has been deleted.",
+                                    customClass: {
+                                        confirmButton: "btn btn-success"
+                                    }
+                                }).then(function () {
+                                    // New method or additional action here
+                                    location.reload(); // Call your new method
+                                });
+                            }
+                        });
+                    });
+
+
+
+
+
+
+
+
+
+
+                });
+        }
+
+        fetchUsers();
+
+
+
+
+        function deleteUser(userId) {
+            fetch(`https://localhost:7245/api/Users/${userId}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    // Optionally show a success message
+                    showSideAlert('User deleted successfully!', 'success');
+
+                    // Refresh the list of users
+                    fetchUsers();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showSideAlert('Failed to delete user. Please try again.', 'error');
+                });
+        }
+
+
+        function hideSwalClasses() {
+            document.querySelectorAll('swal2-container swal2-center swal2-backdrop-show').forEach((element) => {
+                element.style.display = 'none';
+                fetchUsers();
+            });
+        }
+
+        function submitData(event) {
+            event.preventDefault(); // Prevent the form from submitting the default way (which causes a page refresh)
+
+            // Get form data
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const roles = document.getElementById('roles').value.trim();
+
+            // Check for empty fields
+            if (!username || !password || !email || !phone || !roles) {
+                showSideAlert('All fields are required!', 'warning');
+                return; // Stop the function if any field is empty
+            }
+
+            const data = {
+                username: username,
+                password: password,
+                email: email,
+                phone: phone,
+                roles: roles
+                // Add other properties as needed
+            };
+
+            // Send the POST request
+            fetch('https://localhost:7245/api/Users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    if (response.status === 204) {
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    $('#addupdateuser').modal('hide');
+                    showSideAlert('User created successfully!', 'success');
+                    fetchUsers();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showSideAlert('An error occurred. Please try again.', 'error');
+                });
+        }
+
+
+//         document.getElementById('userForm').addEventListener('submit', function(event) {
+//     event.preventDefault(); // Prevent the default form submission
+
+//     const userId = $(this).data("user-id");
+
+
+//     const username = document.getElementById('username').value.trim();
+//             const password = document.getElementById('password').value.trim();
+//             const email = document.getElementById('email').value.trim();
+//             const phone = document.getElementById('phone').value.trim();
+//             const roles = document.getElementById('roles').value.trim();
+
+//     // Prepare the data for the PUT request
+//     const updatedUser = {
+//         username: username,
+//         password: password,
+//         email: email,
+//         phone: phone,
+//         roles: roles
+//     };
+
+//     // Send the PUT request to update the user
+//     fetch(`https://localhost:7245/api/Users/${userId}`, {
+//         method: 'PUT',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(updatedUser)
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error('Network response was not ok');
+//         }
+//         return response.json();
+//     })
+//     .then(data => {
+//         console.log('User updated successfully:', data);
+//         // Optionally, show a success message and close the modal
+//         showSideAlert('User updated successfully!', 'success');
+//         document.getElementById('updateUserModal').style.display = 'none'; // Hide the modal
+//         fetchUsers(); // Refresh the user list
+//     })
+//     .catch(error => {
+//         console.error('Error updating user:', error);
+//         showSideAlert('Failed to update user. Please try again.', 'error');
+//     });
+// });
+    
+    
+
+
+async function openUpdateModal(id) {
+    try {
+        const response = await fetch(`https://localhost:7245/api/Users/${id}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+
+        const userData = await response.json();
+        console.log('User data received:', userData); // Log for debugging
+
+        // Populate form fields with the data received
+        document.getElementById('username').innerHTML = userData.Username || '';
+        document.getElementById('phone').innerHTML = userData.Phone || '';
+        document.getElementById('email').innerHTML = userData.Email || '';
+        
+        // Handling roles if applicable
+        // const rolesSelect = document.getElementById('roles');
+        // rolesSelect.innerHTML = ''; // Clear any previous roles
+        // if (userData.Roles && Array.isArray(userData.Roles)) {
+        //     userData.Roles.forEach(role => {
+        //         const option = document.createElement('option');
+        //         option.text = role;
+        //         option.selected = true; // Assuming roles should be selected
+        //         rolesSelect.add(option);
+        //     });
+        // }
+
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        // Optionally, display an error message to the user
+    }
+}
+
+function openUpdateModalss(userId) {
+    // Fetch user details
+
+    //const userId = $(this).data("user-id");
+
+
+    // const username = document.getElementById('username').value.trim();
+    //         const password = document.getElementById('password').value.trim();
+    //         const email = document.getElementById('email').value.trim();
+    //         const phone = document.getElementById('phone').value.trim();
+    //         const roles = document.getElementById('roles').value.trim();
+
+    // // Prepare the data for the PUT request
+    // const updatedUser = {
+    //     username: username,
+    //     password: password,
+    //     email: email,
+    //     phone: phone,
+    //     roles: roles
+    // };
+
+    // // Send the PUT request to update user
+    // fetch(`https://localhost:7245/api/Users/${userId}`, {
+    //     method: 'PUT',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(updatedUser),
+    // })
+    // .then(response => {
+    //     if (!response.ok) {
+    //         throw new Error('Network response was not ok');
+    //     }
+    //     return response.json(); // Parse JSON response
+    // })
+    // .then(data => {
+    //     // Show success message
+    //     showSideAlert(data.message, 'success');
+
+    //     // Close the update modal
+
+    //     // Refresh the list of users
+    //     $('#addupdateuser').modal('hide');
+    //     fetchUsers();
+    // })
+    // .catch(error => {
+    //     console.error('Error updating user:', error);
+    //     showSideAlert('Failed to update user. Please try again.', 'error');
+    // });
+
+
+
+    // Get the form data
+  //const userId = document.getElementById('userId').value;
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const email = document.getElementById('email').value;
+  const phone = document.getElementById('phone').value;
+  const roles = document.getElementById('roles').value;
+  // Create the payload object
+  const payload = {
+    username: username,
+    password:password,
+    email: email,
+    phone: phone,
+    roles:roles
+  };
+
+  // Send the data to the Web API
+  fetch(`https://localhost:7245/api/Users/${userId}`, {
+    method: 'PUT', // Use 'PATCH' if your API requires it
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+    // Handle success (e.g., show a success message, redirect, etc.)
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    // Handle error (e.g., show an error message)
+  });
+
+}
+    
+    </script>
+</head>
+
+<body>
+    <div id="global-loader">
+        <div class="whirly-loader"> </div>
+    </div>
+
+    <div class="main-wrapper">
+
+        <div class="header">
+
+            <div class="header-left active">
+                <a href="dashboard.html" class="logo">
+                    <img src="assets/img/logo.png" alt="">
+                </a>
+                <a href="dashboard.html" class="logo-small">
+                    <img src="assets/img/logo-small.png" alt="">
+                </a>
+                <a id="toggle_btn" href="javascript:void(0);">
+                </a>
+            </div>
+
+            <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+                <span class="bar-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </a>
+
+            <ul class="nav user-menu">
+
+                <li class="nav-item dropdown has-arrow main-drop">
+                    <a href="javascript:void(0);" class="dropdown-toggle nav-link userset" data-bs-toggle="dropdown">
+                        <span class="user-img"><img src="assets/img/profiles/avator1.jpg" alt="">
+                            <span class="status online"></span></span>
+                    </a>
+                    <div class="dropdown-menu menu-drop-user">
+                        <div class="profilename">
+                            <div class="profileset">
+                                <span class="user-img"><img src="assets/img/profiles/avator1.jpg" alt="">
+                                    <span class="online"></span></span>
+                                <div class="profilesets">
+                                    <h6>Lahulesh Kumar demoo</h6>
+                                    <h5>Admin</h5>
+                                </div>
+                            </div>
+                            <hr class="m-0">
+                            <a class="dropdown-item" href="profile.html"> <i class="me-2" data-feather="user"></i> My
+                                Profile</a>
+                            <a class="dropdown-item" href="generalsettings.html"><i class="me-2"
+                                    data-feather="settings"></i>Settings</a>
+                            <hr class="m-0">
+                            <a class="dropdown-item logout pb-0" href="login.html"><img
+                                    src="assets/img/icons/log-out.svg" class="me-2" alt="img">Logout</a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+
+            <div class="dropdown mobile-user-menu">
+                <a href="javascript:void(0);" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="profile.html">My Profile</a>
+                    <a class="dropdown-item" href="generalsettings.html">Settings</a>
+                    <a class="dropdown-item" href="login.html">Logout</a>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li>
+                            <a href="dashboard.html"><img src="assets/img/icons/dashboard.svg" alt="img"><span>
+                                    Dashboard</span> </a>
+                        </li>
+                        <li>
+                            <a href="branches.html"><i data-feather="layers"></i><span> Branches</span> </a>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="assets/img/icons/users1.svg" alt="img"><span>
+                                    Users</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="userlists.html" class="active">Users List</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-wrapper">
+            <div class="content">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h4>User List</h4>
+                        <h6>Manage your User</h6>
+                    </div>
+                    <div class="page-btn">
+                        <button type="button" id="formTitle" class="btn btn-added" data-bs-toggle="modal"
+                            data-bs-target="#addupdateuser"><img src="assets/img/icons/plus.svg" alt="img"> Add
+                            User</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-top">
+                            <div class="search-set">
+                                <div class="search-input">
+                                    <a class="btn btn-searchset"><img src="assets/img/icons/search-white.svg"
+                                            alt="img"></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table  datanew" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Profile</th>
+                                        <th>User name </th>
+                                        <th>Phone</th>
+                                        <th>email</th>
+                                        <th>Role</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="addupdateuser" tabindex="-1" aria-labelledby="addupdateuser" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form id="userForm" onsubmit="submitData(event)">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create User</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">×</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-4 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <label>User Name</label>
+                                    <input type="text" id="username">
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="phone">
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="text" id="email">
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <label>Role</label>
+                                    <input type="text" id="roles">
+                                    <!-- <select class="select">
+                                    <option>Select</option>
+                                    <option>Owner</option>
+                                </select> -->
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <div class="pass-group">
+                                        <input type="password" class="pass-input" id="password">
+                                        <span class="fas toggle-password fa-eye-slash"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>User Image</label>
+                                    <img id="imagePreview" src="assets/img/icons/upload.svg" alt="img">
+                                    <div class="image-upload image-upload-new" id="Draganddrop">
+                                        <input type="file" id="imageUpload" accept="image/*">
+                                        <div class="image-uploads">
+                                            <img src="assets/img/icons/upload.svg" alt="img">
+                                            <h4>Drag and drop a file to upload</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-submit">Submit</button>
+                        <button type="submit updateUserForm" class="btn btn-submit">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="side-alert" class="side-alert">
+        <span id="side-alert-icon"></span>
+        <span id="side-alert-message"></span>
+        <button id="close-alert" class="close-btn">&times;</button>
+    </div>
+
+    <script src="assets/backend/login.js"></script>
+    <script src="assets/js/customscript.js"></script>
+
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
+
+    <script src="assets/js/feather.min.js"></script>
+
+    <script src="assets/js/jquery.slimscroll.min.js"></script>
+
+    <script src="assets/js/jquery.dataTables.min.js"></script>
+    <script src="assets/js/dataTables.bootstrap4.min.js"></script>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="assets/plugins/select2/js/select2.min.js"></script>
+
+    <script src="assets/js/moment.min.js"></script>
+    <script src="assets/js/bootstrap-datetimepicker.min.js"></script>
+
+
+
+    <script src="assets/js/script.js"></script>
+
+    <script>
+
+
+
+
+    </script>
+    <script src="assets/js/customnotification.js"></script>
+
+</body>
+
+</html>
